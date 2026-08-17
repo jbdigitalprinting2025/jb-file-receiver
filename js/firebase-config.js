@@ -10,5 +10,11 @@ const FIREBASE_CONFIG = {
 const APP_CONFIG = {
   uploadUrl: "https://jbdigitalprinting2025.github.io/jb-file-receiver/",
   adminEmails: ["jbdigital948@gmail.com", "mr.sebuguero@gmail.com"],
-  agentEmail: "jbfilereceiver@jb.local"
+  agentEmail: "jbfilereceiver@jb.local",
+  storage: {
+    provider: "r2",
+    workerUrl: "https://jb-upload.PLACEHOLDER.workers.dev",
+    uploadToken: "PLACEHOLDER-UPLOAD-TOKEN",
+    maxSizeMB: 200
+  }
 };
