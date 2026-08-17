@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JB Digital Printing — Scan to Send Files</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FFC107'/><text x='50' y='68' font-size='52' text-anchor='middle' font-family='Arial' font-weight='bold' fill='%231B1B1B'>JB</text></svg>">
+  <style>
+    .qr-wrap { text-align: center; padding: 24px 16px 40px; }
+    .qr-box { display: inline-block; background: #fff; border: 3px solid var(--jb-black); border-radius: 16px; padding: 18px; margin: 14px 0; box-shadow: var(--shadow); }
+    .qr-box img { width: 260px; height: 260px; max-width: 80vw; display: block; }
+    .qr-steps { max-width: 420px; margin: 0 auto; text-align: left; font-size: 14px; color: #444; }
+    .qr-steps li { margin: 6px 0; }
+    .qr-footer { margin-top: 18px; font-size: 12.5px; color: var(--jb-gray); }
+    @media print {
+      .topbar, .no-print { display: none !important; }
+      body { background: #fff; }
+      .qr-wrap { padding: 0; }
+      .qr-box { border-width: 2px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo-badge">JB</div>
+    <div>
+      <h1>JB DIGITAL PRINTING</h1>
+      <div class="tagline">Your vision, <b>our print.</b></div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <section class="qr-wrap">
+      <h2 style="justify-content:center">SEND YOUR FILES</h2>
+      <p style="color:#555;font-size:15px"><b>SCAN THE QR CODE</b> using your phone camera</p>
+
+      <div class="qr-box">
+        <img id="qr-img" alt="QR Code — JB Digital Printing Upload"
+             src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&qzone=2&data=https%3A%2F%2Fjbdigitalprinting2025.github.io%2Fjb-file-receiver%2F">
+      </div>
+
+      <p style="font-size:13px;color:#666">No app required. No need for the shop WiFi password.<br>
+      Use your mobile data, SHARE WiFi, or any internet connection.</p>
+
+      <div class="card qr-steps">
+        <ol>
+          <li>Point your camera at the QR code</li>
+          <li>Open the link that appears</li>
+          <li>Enter your name and select your files</li>
+          <li>Tap UPLOAD FILES</li>
+          <li>Wait for our staff to process your files</li>
+        </ol>
+      </div>
+
+      <div class="qr-footer">
+        JB DIGITAL PRINTING — Tigaon, Camarines Sur<br>
+        <b>Your vision, our print.</b>
+      </div>
+
+      <div class="no-print" style="margin-top:20px">
+        <button class="btn btn-primary" onclick="window.print()">🖨 PRINT THIS QR</button>
+        <div style="margin-top:8px"><a class="qr-link" href="index.html">← Back to upload page</a></div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
