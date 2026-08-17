@@ -9,7 +9,6 @@
   var firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
   var auth = firebase.auth();
   var db = firebase.firestore();
-  var storage = firebase.storage();
 
   // ---------- settings (with safe defaults) ----------
   var SETTINGS = {
@@ -24,7 +23,6 @@
   var uploading = false;
   var currentOrderId = null;
   var currentOrderNumber = null;
-  var uploadTasks = {};        // fileName -> upload task
   var fileStates = {};         // fileName -> {status, progress, error}
   var anonReady = false;
 
@@ -88,6 +86,13 @@
         $('allowed-hint').textContent = SETTINGS.allowedExtensions.map(function (e) { return e.toUpperCase(); }).join(', ') + ' · max ' + SETTINGS.maxFileSizeMB + 'MB per file';
       })
       .catch(function () { /* defaults */ });
+  }
+
+  // ---------- storage provider ----------
+  try {
+    StorageService.init(APP_CONFIG.storage);
+  } catch (e) {
+    console.error('storage init failed', e);
   }
 
   // ---------- init ----------
@@ -308,30 +313,24 @@
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     }).then(function () {
-      var task = storage.ref(storagePath).put(f);
-      uploadTasks[f.name] = task;
       setRowState(stateEl, 'Uploading… 0%', 'wait');
-      return new Promise(function (resolve, reject) {
-        task.on('state_changed',
-          function (snap) {
-            var pct = (snap.bytesTransferred / snap.totalBytes * 100).toFixed(0);
-            if (fillEl) fillEl.style.width = pct + '%';
-            setRowState(stateEl, 'Uploading… ' + pct + '%', 'wait');
-            updateGlobalProgress();
-          },
-          function (err) {
-            console.error('upload error', f.name, err);
-            fileRef.update({ uploadStatus: 'FAILED' }).catch(function () {});
-            setRowState(stateEl, 'FAILED', 'err');
-            resolve(false);
-          },
-          function () {
-            fileRef.update({ uploadStatus: 'DONE' }).catch(function () {});
-            setRowState(stateEl, 'DONE ✓', 'done');
-            if (fillEl) fillEl.style.width = '100%';
-            updateGlobalProgress();
-            resolve(true);
-          });
+      return StorageService.uploadFile(f, storagePath, function (loaded, total) {
+        var pct = total ? (loaded / total * 100).toFixed(0) : 0;
+        if (fillEl) fillEl.style.width = pct + '%';
+        setRowState(stateEl, 'Uploading… ' + pct + '%', 'wait');
+        updateGlobalProgress();
+      }).then(function () {
+        return fileRef.update({ uploadStatus: 'DONE' }).catch(function () {});
+      }).then(function () {
+        setRowState(stateEl, 'DONE ✓', 'done');
+        if (fillEl) fillEl.style.width = '100%';
+        updateGlobalProgress();
+        return true;
+      }).catch(function (err) {
+        console.error('upload error', f.name, err);
+        fileRef.update({ uploadStatus: 'FAILED' }).catch(function () {});
+        setRowState(stateEl, 'FAILED', 'err');
+        return false;
       });
     }).catch(function (err) {
       console.error('file prep error', f.name, err);
