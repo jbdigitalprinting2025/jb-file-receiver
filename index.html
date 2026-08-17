@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>JB Digital Printing — Send Your Files</title>
+  <meta name="description" content="Send your print files to JB Digital Printing. Your vision, our print.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FFC107'/><text x='50' y='68' font-size='52' text-anchor='middle' font-family='Arial' font-weight='bold' fill='%231B1B1B'>JB</text></svg>">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="logo-badge">JB</div>
+    <div>
+      <h1>JB DIGITAL PRINTING</h1>
+      <div class="tagline">Your vision, <b>our print.</b></div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <!-- ============ STEP 1: FORM ============ -->
+    <section id="view-form">
+      <div class="card">
+        <h2><span class="ico">📤</span> SEND YOUR FILES</h2>
+
+        <div id="errbox" class="err-banner hidden"></div>
+
+        <div class="field">
+          <label for="cust-name">Customer Name <span class="opt">(required)</span></label>
+          <input type="text" id="cust-name" placeholder="Juan Dela Cruz" autocomplete="name">
+        </div>
+
+        <div class="field">
+          <label for="cust-contact">Contact Number <span class="opt">(optional)</span></label>
+          <input type="tel" id="cust-contact" placeholder="09XXXXXXXXX" autocomplete="tel">
+        </div>
+
+        <div class="field">
+          <label for="cust-ref">Order / Reference <span class="opt">(optional)</span></label>
+          <input type="text" id="cust-ref" placeholder="e.g. Tarpaulin 3x4">
+        </div>
+
+        <div class="field">
+          <label>Files</label>
+          <div class="file-picker" id="file-picker">
+            <div class="big">📁</div>
+            <p>Tap to select files</p>
+            <small id="allowed-hint">JPG, PNG, PDF, DOCX, ZIP and more</small>
+            <input type="file" id="file-input" multiple>
+          </div>
+
+          <div class="file-list" id="file-list"></div>
+
+          <div class="totals hidden" id="totals">
+            <span>Selected Files: <b id="total-count">0</b></span>
+            <span>Total Size: <b id="total-size">0 MB</b></span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-upload" disabled>UPLOAD FILES</button>
+        <div class="info-note" id="conn-note">Connecting…</div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 2: PROGRESS ============ -->
+    <section id="view-progress" class="hidden">
+      <div class="card">
+        <h2><span class="ico">⬆️</span> Uploading…</h2>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-note" id="progress-note">0%</div>
+        <div class="totals">
+          <span><b id="done-count">0</b> of <b id="total-count-p">0</b> files uploaded</span>
+          <span><b id="size-done">0 MB</b> / <b id="size-total-p">0 MB</b></span>
+        </div>
+        <div class="file-list" id="progress-list"></div>
+        <div class="progress-warn">⚠️ Please do not close this page while uploading.</div>
+        <button class="btn btn-dark hidden" id="btn-retry-failed" style="margin-top:12px">RETRY FAILED FILES</button>
+      </div>
+    </section>
+
+    <!-- ============ STEP 3: DONE ============ -->
+    <section id="view-done" class="hidden">
+      <div class="card success-box">
+        <div class="success-check">✓</div>
+        <h2 style="justify-content:center">UPLOAD COMPLETE</h2>
+        <p style="color:#555;font-size:14px">Your files have been successfully received.</p>
+
+        <div class="order-no" id="done-order-no">JB-2026-000000</div>
+
+        <div class="sum-row"><span>Files:</span><b id="done-files">0</b></div>
+        <div class="sum-row"><span>Total:</span><b id="done-size">0 MB</b></div>
+
+        <div class="pc-wait">
+          <b>💻 PC transfer: WAITING</b>
+          Our system will automatically transfer your files to the shop computer when it reconnects.
+        </div>
+
+        <p style="margin-top:16px;font-size:14px;color:#333">
+          Please wait for our staff to process your files.<br>
+          Thank you for choosing <b>JB DIGITAL PRINTING.</b>
+        </p>
+        <button class="btn btn-ghost" id="btn-new-upload" style="margin-top:16px">SEND ANOTHER FILES</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      JB DIGITAL PRINTING — Tigaon, Camarines Sur<br>
+      <a href="admin.html">Admin</a>
+    </footer>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/sha256.js"></script>
+  <script src="js/upload.js"></script>
+</body>
+</html>
