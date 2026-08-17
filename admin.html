@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JB Digital Printing — File Receiving Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FFC107'/><text x='50' y='68' font-size='52' text-anchor='middle' font-family='Arial' font-weight='bold' fill='%231B1B1B'>JB</text></svg>">
+  <style>
+    body { background: #F1F1EE; }
+    .admin-top { background: var(--jb-black); color: #fff; padding: 12px 16px; display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+    .admin-top .left { display: flex; align-items: center; gap: 12px; }
+    .admin-top h1 { font-size: 15px; }
+    .admin-top .sub { font-size: 11px; color: #aaa; }
+    .admin-top .btn-sm { background: #333; color: #fff; }
+    .admin-wrap { max-width: 1000px; margin: 0 auto; padding: 16px 14px 50px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .stat { background: #fff; border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); }
+    .stat .n { font-size: 24px; font-weight: 800; }
+    .stat .l { font-size: 11.5px; color: var(--jb-gray); text-transform: uppercase; letter-spacing: .4px; }
+    .stat.online .n { color: var(--jb-green); }
+    .stat.warn .n { color: var(--jb-yellow-dark); }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+    th, td { padding: 10px 12px; text-align: left; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+    th { background: #FAFAF8; font-size: 11.5px; text-transform: uppercase; color: var(--jb-gray); letter-spacing: .3px; }
+    tr.clickable { cursor: pointer; }
+    tr.clickable:hover { background: #FFFBF0; }
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 800; }
+    .b-UPLOADING { background: #FFF3CD; color: #8a6d00; }
+    .b-UPLOADED { background: #E3F2FD; color: #0d47a1; }
+    .b-RECEIVED { background: #E3F2FD; color: #0d47a1; }
+    .b-DOWNLOADING { background: #EDE7F6; color: #4a148c; }
+    .b-READY { background: #E8F5E9; color: #1b5e20; }
+    .b-PRINTING { background: #FFF8E1; color: #7a5c00; }
+    .b-COMPLETED { background: #EEEEEE; color: #333; }
+    .b-FAILED { background: #FDECEA; color: #b71c1c; }
+    .b-DELETED { background: #F5F5F5; color: #999; text-decoration: line-through; }
+    .b-WAITING { background: #FFF3CD; color: #8a6d00; }
+    .b-SUCCESS { background: #E8F5E9; color: #1b5e20; }
+    .b-PENDING { background: #EEEEEE; color: #666; }
+    .b-RETENTION { background: #FFF8E1; color: #b26a00; }
+    .st-grid { display: grid; gap: 8px; margin-top: 8px; }
+    .st-row { display: flex; justify-content: space-between; align-items: center; background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 8px 10px; font-size: 12.5px; }
+    .st-row .lbl { color: var(--jb-gray); }
+    .st-row .val { font-weight: 700; }
+    .st-ok { color: #1b5e20; font-weight: 700; }
+    .st-warn { color: #b26a00; font-weight: 700; }
+    .st-err { color: #b71c1c; font-weight: 700; }
+    .layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 900px) { .layout { grid-template-columns: 1.6fr 1fr; } }
+    .detail-card h3 { font-size: 15px; margin-bottom: 8px; }
+    .kv { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed #eee; }
+    .kv b { color: #333; text-align: right; }
+    .file-row2 { font-size: 12.5px; padding: 7px 8px; background: #fafafa; border: 1px solid #eee; border-radius: 8px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .file-row2 .fn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-row2 .fs { color: var(--jb-gray); font-size: 11px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .actions .btn-sm { flex: 1 1 40%; }
+    .btn-green { background: var(--jb-green); color: #fff; }
+    .btn-red { background: var(--jb-red); color: #fff; }
+    .btn-blue { background: #1565C0; color: #fff; }
+    .login-card { max-width: 380px; margin: 60px auto; text-align: center; }
+    .login-card .logo-badge { margin: 0 auto 12px; }
+    .log-row { font-size: 12px; padding: 6px 0; border-bottom: 1px solid #f2f2f2; color: #444; }
+    .log-row .t { color: var(--jb-gray); font-size: 10.5px; }
+    .muted { color: var(--jb-gray); font-size: 12.5px; }
+    .denied { text-align: center; padding: 60px 20px; }
+    .denied .big { font-size: 44px; }
+    .qr-link { display: inline-block; margin-top: 8px; color: #1565C0; text-decoration: none; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN VIEW -->
+  <div class="wrap" id="view-login">
+    <div class="card login-card">
+      <div class="logo-badge" style="width:56px;height:56px;font-size:24px">JB</div>
+      <h2 style="justify-content:center">ADMIN LOGIN</h2>
+      <p class="muted" style="margin-bottom:14px">JB Digital Printing — File Receiving Dashboard</p>
+      <div id="login-err" class="err-banner hidden"></div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="login-email" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="login-pass" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" id="btn-login">LOGIN</button>
+      <div class="info-note" id="login-note"></div>
+      <div class="info-note"><a href="#" id="btn-forgot">Forgot password?</a></div>
+    </div>
+  </div>
+
+  <!-- DENIED VIEW -->
+  <div class="wrap hidden" id="view-denied">
+    <div class="card denied">
+      <div class="big">🔒</div>
+      <h2 style="justify-content:center">ACCESS DENIED</h2>
+      <p class="muted">This dashboard is for JB Digital Printing admin accounts only.</p>
+      <button class="btn btn-dark" id="btn-logout2" style="margin-top:16px">LOGOUT</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div class="hidden" id="view-dash">
+    <div class="admin-top">
+      <div class="left">
+        <div class="logo-badge" style="width:34px;height:34px;font-size:15px">JB</div>
+        <div>
+          <h1>FILE RECEIVING DASHBOARD</h1>
+          <div class="sub" id="whoami"></div>
+        </div>
+      </div>
+      <button class="btn-sm" id="btn-logout">LOGOUT</button>
+    </div>
+
+    <div class="admin-wrap">
+      <div class="stats">
+        <div class="stat"><div class="n" id="st-new">0</div><div class="l">New / Received</div></div>
+        <div class="stat warn"><div class="n" id="st-ready">0</div><div class="l">Ready on PC</div></div>
+        <div class="stat"><div class="n" id="st-printing">0</div><div class="l">Printing</div></div>
+        <div class="stat online"><div class="n" id="st-devices">0</div><div class="l">PC Online</div></div>
+        <div class="stat"><div class="n" id="st-failed">0</div><div class="l">Failed</div></div>
+      </div>
+
+      <div class="layout">
+        <div>
+          <div class="card">
+            <h2><span class="ico">📋</span> NEW FILES</h2>
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>Customer</th><th>Order</th><th>Files</th><th>Size</th><th>Status</th><th>PC</th><th>Cloud</th><th>Date</th></tr></thead>
+                <tbody id="orders-body"></tbody>
+              </table>
+            </div>
+            <div class="muted" id="orders-empty" style="margin-top:10px"></div>
+          </div>
+
+          <div class="card">
+            <h2><span class="ico">📜</span> TRANSFER / AUDIT LOG</h2>
+            <div id="log-list"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card detail-card" id="detail-card">
+            <h3>🖥️ PC AGENTS</h3>
+            <div id="devices-list"></div>
+          </div>
+
+          <div class="card detail-card" id="order-detail" style="display:none">
+            <h3 id="od-title">Order</h3>
+            <div id="od-body"></div>
+          </div>
+
+          <div class="card detail-card">
+            <h3>⚙️ SETTINGS</h3>
+            <div id="settings-body" class="muted">Loading…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
