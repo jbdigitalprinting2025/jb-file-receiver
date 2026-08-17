@@ -14,7 +14,13 @@
   var firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
   var auth = firebase.auth();
   var db = firebase.firestore();
-  var storage = firebase.storage();
+
+  // ---------- storage provider (abstraction) ----------
+  try {
+    StorageService.init(APP_CONFIG.storage);
+  } catch (e) {
+    console.error('storage init failed', e);
+  }
 
   // ---------- state ----------
   var isAdmin = false;
@@ -442,7 +448,7 @@
     if (!confirm('Delete the Firebase cloud copy of ' + o.orderNumber + ' NOW?\n\nOnly the cloud copy is removed — the PC copy (D:\\JB FILES) stays. This cannot be undone.')) return;
     var filesToDelete = currentFiles.filter(function (f) { return f.firebaseStatus !== 'DELETED'; });
     var tasks = filesToDelete.map(function (f) {
-      return storage.ref(f.storagePath).delete()
+      return StorageService.deleteFile(f.storagePath)
         .then(function () { return db.collection('qr_files').doc(f.id).update({ firebaseStatus: 'DELETED', deletedFromCloudAt: firebase.firestore.FieldValue.serverTimestamp() }); })
         .catch(function (err) { console.error('delete failed', f.storagePath, err); throw err; });
     });
