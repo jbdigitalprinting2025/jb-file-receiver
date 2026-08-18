@@ -103,7 +103,9 @@
 
   // ---------- file picker ----------
   var picker = $('file-picker'), input = $('file-input');
-  picker.addEventListener('click', function () { if (!uploading) input.click(); });
+  // native overlay input opens the dialog; keep a JS fallback for clicks that
+  // land on the picker itself (not the overlay), guarded against double-open
+  picker.addEventListener('click', function (e) { if (!uploading && e.target !== input) input.click(); });
   ['dragover', 'dragenter'].forEach(function (ev) {
     picker.addEventListener(ev, function (e) { e.preventDefault(); picker.classList.add('drag'); });
   });
