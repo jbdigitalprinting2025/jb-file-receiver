@@ -200,7 +200,7 @@
       return '<option value="' + h + '"' + (SETTINGS.retentionHours === h ? ' selected' : '') + '>' + h + ' hour' + (h > 1 ? 's' : '') + '</option>';
     }).join('');
     $('settings-body').innerHTML =
-      '<div class="kv"><span>Allowed files</span><b>JPG, PNG, PDF, DOCX, ZIP…</b></div>' +
+      '<div class="kv"><span>Allowed files</span><b>All file types (any extension)</b></div>' +
       '<div class="kv"><span>Max file size</span><b>200 MB</b></div>' +
       '<div class="field" style="margin-top:10px">' +
       '  <label>Cloud safety retention (after PC transfer)</label>' +
