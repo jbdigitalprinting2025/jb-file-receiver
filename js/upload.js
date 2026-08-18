@@ -12,7 +12,7 @@
 
   // ---------- settings (with safe defaults) ----------
   var SETTINGS = {
-    allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'psd', 'ai', 'svg', 'zip', 'rar'],
+    allowedExtensions: [],   // empty = ALL file types allowed (any extension)
     maxFileSizeMB: 200,
     retentionHours: 24,   // TEMPORARY cloud retention after successful PC transfer
     localRetentionDays: 0
@@ -83,7 +83,9 @@
           if (d.retentionHours > 0) SETTINGS.retentionHours = d.retentionHours;
           if (d.localRetentionDays >= 0) SETTINGS.localRetentionDays = d.localRetentionDays;
         }
-        $('allowed-hint').textContent = SETTINGS.allowedExtensions.map(function (e) { return e.toUpperCase(); }).join(', ') + ' · max ' + SETTINGS.maxFileSizeMB + 'MB per file';
+        $('allowed-hint').textContent = (SETTINGS.allowedExtensions.length
+          ? SETTINGS.allowedExtensions.map(function (e) { return e.toUpperCase(); }).join(', ')
+          : 'All file types') + ' · max ' + SETTINGS.maxFileSizeMB + 'MB per file';
       })
       .catch(function () { /* defaults */ });
   }
@@ -147,7 +149,7 @@
     var errors = [];
     Array.prototype.forEach.call(fileList, function (f) {
       var ext = extOf(f.name);
-      if (SETTINGS.allowedExtensions.indexOf(ext) === -1) {
+      if (SETTINGS.allowedExtensions.length && SETTINGS.allowedExtensions.indexOf(ext) === -1) {
         errors.push(f.name + ' — type .' + ext + ' not allowed');
         return;
       }
