@@ -101,6 +101,28 @@
     .catch(function (e) { $('conn-note').textContent = e.message; });
   loadSettings();
 
+  // ---------- in-app browser detection ----------
+  // QR scans often open the link inside the camera app's built-in webview,
+  // which blocks file selection. Show a friendly hint to open in a real browser.
+  function detectEmbeddedBrowser() {
+    var ua = navigator.userAgent || '';
+    var iOS = /iPad|iPhone|iPod/.test(ua);
+    var isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS/.test(ua);
+    var android = /Android/.test(ua);
+    var hasChrome = /Chrome\//.test(ua);
+    var knownBrowser = /SamsungBrowser|Firefox|OPR\/|Edg\/|CriOS|FxiOS|DuckDuckGo|Brave/.test(ua);
+    var embedded = /wv|WebView|FBAN|FBAV|Line\/|MicroMessenger|Instagram|KAKAOTALK|GSA\/|YaApp|inapp|1Password/.test(ua);
+    if (embedded) return true;
+    if (iOS && !isSafari) return true;
+    if (android && !hasChrome && !knownBrowser) return true;
+    return false;
+  }
+  var wvNote = $('webview-note');
+  if (wvNote && detectEmbeddedBrowser()) {
+    wvNote.textContent = '📱 Hindi makapili ng files? Buksan ito sa Chrome/Safari: i-tap ang ⋮ (3 tuldok) → "Open in browser" / "Open in Chrome", o kung sa camera scan: "Open in Safari" (itaas ng screen).';
+    wvNote.classList.remove('hidden');
+  }
+
   // ---------- file picker ----------
   var picker = $('file-picker'), input = $('file-input');
   // native overlay input opens the dialog; keep a JS fallback for clicks that
