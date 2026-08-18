@@ -98,7 +98,19 @@ body {
 .file-picker .big { font-size: 30px; }
 .file-picker p { font-size: 14px; font-weight: 600; margin-top: 4px; }
 .file-picker small { color: var(--jb-gray); font-size: 11.5px; }
-.file-picker input { display: none; }
+.file-picker { position: relative; overflow: hidden; }
+.file-picker input[type="file"] {
+  /* overlay the whole picker with an invisible native input — tapping anywhere
+     opens the file dialog natively on ALL mobile browsers (iOS Safari blocks
+     .click() on display:none inputs, which is why the old JS-only approach
+     failed on phones). */
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
 
 .file-list { margin-top: 10px; }
 .file-row {
