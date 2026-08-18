@@ -25,7 +25,8 @@
 
   // ---------- Cloudflare R2 adapter ----------
   function R2Adapter(cfg) {
-    var workerUrl = cfg.workerUrl;
+    // strip trailing slash so workerUrl + '/presign' never becomes '//presign'
+    var workerUrl = String(cfg.workerUrl || '').replace(/\/+$/, '');
     var token = cfg.uploadToken;
     var maxSizeMB = cfg.maxSizeMB || 200;
 
