@@ -13,7 +13,7 @@ const APP_CONFIG = {
   agentEmail: "jbfilereceiver@jb.local",
   storage: {
     provider: "r2",
-    workerUrl: "https://jb-upload.mr-sebuguero.workers.dev/",
+    workerUrl: "https://jb-upload.mr-sebuguero.workers.dev",
     uploadToken: "d922306df75e14acdbe3a41beca0bec439067dcd9b5cca2e",
     maxSizeMB: 200
   }
