@@ -29,6 +29,11 @@
     var workerUrl = String(cfg.workerUrl || '').replace(/\/+$/, '');
     var token = cfg.uploadToken;
     var maxSizeMB = cfg.maxSizeMB || 200;
+    // RACE-FIX (Aug 20, 2026): safe configurable upload timeout. A hung
+    // request must never leave the UI stuck on "Uploading..." forever.
+    // Default 5 minutes — long enough for a 200MB file on a slow link,
+    // well under the worker's 15-min presigned URL expiry.
+    var uploadTimeoutMs = cfg.uploadTimeoutMs || 300000;
 
     function presign(method, key, contentType, size) {
       return fetch(workerUrl + '/presign', {
@@ -61,6 +66,13 @@
             var xhr = new XMLHttpRequest();
             xhr.open('PUT', url);
             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+            // RACE-FIX: abort + reject on timeout so the caller can mark the
+            // file FAILED and offer retry instead of hanging forever.
+            xhr.timeout = uploadTimeoutMs;
+            xhr.ontimeout = function () {
+              try { xhr.abort(); } catch (e) {}
+              reject(new Error('Upload timed out. Please retry this file.'));
+            };
             if (typeof onProgress === 'function') {
               xhr.upload.onprogress = function (e) {
                 if (e.lengthComputable) onProgress(e.loaded, e.total);
