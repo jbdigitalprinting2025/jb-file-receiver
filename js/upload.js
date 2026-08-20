@@ -366,17 +366,21 @@
   }
 
   function updateGlobalProgress() {
-    var done = 0, total = 0;
+    var done = 0;
     var list = $('progress-list').children;
     for (var i = 0; i < list.length; i++) {
       var st = list[i].querySelector('.fstate');
       if (st && st.textContent.indexOf('DONE') === 0) done++;
-      total++;
     }
+    // RACE-FIX: use the TRUE expected total (selectedFiles.length) so the
+    // progress reads "7 of 10", not "7 of 7" while files 8-10 are pending.
+    var total = selectedFiles.length || list.length;
     var pct = total ? Math.round(done / total * 100) : 0;
     $('progress-fill').style.width = pct + '%';
-    $('progress-note').textContent = pct + '%';
+    $('progress-note').textContent = done + ' of ' + total + ' uploaded (' + pct + '%)';
     $('done-count').textContent = done;
+    var totalEl = $('total-count-p');
+    if (totalEl) totalEl.textContent = total;
   }
 
   function addProgressRow(f, ext, idx) {
