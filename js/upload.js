@@ -424,18 +424,19 @@
   // retry failed files: re-run only rows marked FAILED
   $('btn-retry-failed').addEventListener('click', function () {
     $('btn-retry-failed').classList.add('hidden');
-    var failed = [];
-    selectedFiles.forEach(function (s) { failed.push(s); });
-    // simplest robust retry: restart the whole batch for FAILED ones
-    var rows = $('progress-list').children;
+    // RACE-FIX (Aug 20, 2026): snapshot the rows FIRST (Array.from) so the
+    // live NodeList does not shift indices while we remove() failed rows —
+    // the old live-iteration skipped every other FAILED file (3 of 6).
+    var rows = Array.prototype.slice.call($('progress-list').children);
     var toRetry = [];
-    for (var i = 0; i < rows.length; i++) {
-      var st = rows[i].querySelector('.fstate');
+    rows.forEach(function (row) {
+      var st = row.querySelector('.fstate');
       if (st && st.textContent.indexOf('FAILED') === 0) {
-        toRetry.push(selectedFiles[parseInt(rows[i].dataset.idx, 10)]);
-        rows[i].remove();
+        var s = selectedFiles[parseInt(row.dataset.idx, 10)];
+        if (s) toRetry.push(s);
+        row.remove();
       }
-    }
+    });
     if (!toRetry.length) return;
     var results = { allDone: true, uploadedCount: 0, uploadedSize: 0 };
     var seq = Promise.resolve();
