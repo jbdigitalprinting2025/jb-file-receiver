@@ -289,6 +289,8 @@
       var fb = o.firebaseStatus === 'DELETED' ? '✓' : (o.cleanupPaused ? '⏸' : (o.firebaseStatus === 'RETENTION' ? '⏳' : '—'));
       tr.innerHTML =
         '<td>' + esc(o.customerName || '—') + '</td>' +
+        '<td>' + esc(o.customerContact || '—') + '</td>' +
+        '<td>' + esc(o.reference || '—') + '</td>' +
         '<td><b>' + esc(o.orderNumber || '—') + '</b></td>' +
         '<td>' + (o.fileCount || 0) + '</td>' +
         '<td>' + sizeTxt + '</td>' +
