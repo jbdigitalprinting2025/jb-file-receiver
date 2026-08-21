@@ -58,6 +58,27 @@
     return (stem || 'file') + '.' + ext;
   }
 
+  // ---------- resilient Firestore writes ----------
+  // Transient quota/network errors (HTTP 429 RESOURCE_EXHAUSTED, unavailable,
+  // aborted, etc.) auto-retry with exponential backoff so the customer NEVER
+  // has to retry the upload because the backend was temporarily busy.
+  function retryOp(fn, attempts, baseDelay) {
+    attempts = attempts || 6;
+    baseDelay = baseDelay || 600;
+    function attempt(n) {
+      return fn().catch(function (err) {
+        var code = err && err.code;
+        var retriable = code === 'resource-exhausted' || code === 'unavailable' ||
+                        code === 'aborted' || code === 'deadline-exceeded' ||
+                        code === 'internal';
+        if (n >= attempts || !retriable) throw err;
+        var delay = baseDelay * Math.pow(2, n) + Math.random() * 200;
+        return new Promise(function (res) { setTimeout(function () { res(attempt(n + 1)); }, delay); });
+      });
+    }
+    return attempt(0);
+  }
+
   // ---------- anonymous sign-in ----------
   function ensureAnon() {
     return new Promise(function (resolve, reject) {
@@ -325,18 +346,20 @@
     return sha256File(f, function (done, total) {
       if (fillEl) fillEl.style.width = (done / total * 100).toFixed(1) + '%';
     }).then(function (hash) {
-      return fileRef.set({
-        orderId: orderId,
-        originalName: f.name,
-        storagePath: storagePath,
-        size: f.size,
-        mime: f.type || ('application/' + s.ext),
-        sha256: hash,
-        uploadStatus: 'UPLOADING',
-        pcStatus: 'PENDING',
-        firebaseStatus: 'PENDING',
-        creatorUid: auth.currentUser.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      return retryOp(function () {
+        return fileRef.set({
+          orderId: orderId,
+          originalName: f.name,
+          storagePath: storagePath,
+          size: f.size,
+          mime: f.type || ('application/' + s.ext),
+          sha256: hash,
+          uploadStatus: 'UPLOADING',
+          pcStatus: 'PENDING',
+          firebaseStatus: 'PENDING',
+          creatorUid: auth.currentUser.uid,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
       });
     }).then(function () {
       setRowState(stateEl, 'Uploading… 0%', 'wait');
@@ -346,7 +369,9 @@
         setRowState(stateEl, 'Uploading… ' + pct + '%', 'wait');
         updateGlobalProgress();
       }).then(function () {
-        return fileRef.update({ uploadStatus: 'DONE' }).catch(function () {});
+        return retryOp(function () {
+          return fileRef.update({ uploadStatus: 'DONE' });
+        }).catch(function () {});
       }).then(function () {
         setRowState(stateEl, 'DONE ✓', 'done');
         if (fillEl) fillEl.style.width = '100%';
@@ -354,7 +379,9 @@
         return true;
       }).catch(function (err) {
         console.error('upload error', f.name, err);
-        fileRef.update({ uploadStatus: 'FAILED' }).catch(function () {});
+        retryOp(function () {
+          return fileRef.update({ uploadStatus: 'FAILED' });
+        }).catch(function () {});
         setRowState(stateEl, 'FAILED', 'err');
         return false;
       });
@@ -458,12 +485,16 @@
 
   // ---------- finish ----------
   function finishOrder(fileCount, totalSize) {
-    return db.collection('qr_orders').doc(currentOrderId).update({
-      status: 'UPLOADED',
-      pcStatus: 'WAITING',
-      fileCount: fileCount,
-      totalSize: totalSize,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    // retryOp: transient quota/network errors auto-retry instead of failing
+    // the customer's completion screen
+    return retryOp(function () {
+      return db.collection('qr_orders').doc(currentOrderId).update({
+        status: 'UPLOADED',
+        pcStatus: 'WAITING',
+        fileCount: fileCount,
+        totalSize: totalSize,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
     }).then(function () {
       uploading = false;
       viewProgress.classList.add('hidden');
